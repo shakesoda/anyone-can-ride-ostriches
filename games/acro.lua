@@ -14,7 +14,7 @@ end
 function acro.new_game(self, mode, options)
 	setmetatable(self, acro)
 	-- game settings
-	self.settings = require "./server/settings"
+	self.settings = require "games/settings"
 	if mode and self.settings[mode] then
 		game.settings.mode = mode
 	end
