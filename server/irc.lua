@@ -1,5 +1,5 @@
 local socket = require "socket"
-local acro = require "server/acro"
+local acro = require "games/acro"
 
 local settings = {
 	server = "irc.xtil.net",
