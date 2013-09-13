@@ -1,0 +1,62 @@
+Acro Settings
+=============
+
+Shared Settings
+---------------
+* mode	(default value: "normal")
+Sets the default play mode, where the value represents one of the rulesets.
+
+Rulesets
+--------
+There are a few rulesets built in:
+
+* Normal
+A "normal" game of Acro.
+
+	score_limit	= 31
+	time_limit	= 60
+	min_length	= 3
+	max_length	= 5
+
+* Super
+
+* Turkeyslam
+
+* AJslam
+
+* Race to the Bottom (XXXtaco)
+A mode in which you must reach -151 via duping other players multiple times.
+
+Ruleset Configuration
+---------------------
+* player_limit
+The maximum number of players allowed in a game.
+
+* score_limit
+The default score at which the game ends. This may be changed by special rules. 
+
+* time_limit
+(unspecified) time limit. (between rounds? waiting for acros and voting?)
+
+* min_length
+Minimum acro length, excluding special rules.
+
+* max_length
+Maximum acro length, excluding special rules.
+
+* super_length
+"Super" length, used in special rules. Only works if allow_super is true.
+
+* allow_cockblock
+If true, enables the event where cockblocked players have the chance to lose all
+their points.
+
+* allow_communism
+point redistribution.
+
+* allow_super
+If true, enables acros of "super" length, defined in super_length above.
+
+Settings not yet included:
+* letter_weights
+Allows for better distribution of letters in acros.
