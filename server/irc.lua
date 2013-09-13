@@ -5,6 +5,7 @@ local settings = {
 	server = "irc.xtil.net",
 	port = 6667,
 	nick = "acrobot-x",
+	fullname = "Acrobot X",
 	channel = "#acrosoda",
 	verbose = false -- echos all messages back to IRC and terminal
 }
@@ -22,7 +23,7 @@ function connect(params)
 	s:connect(socket.dns.toip(params.server), params.port)
 
 	-- USER username hostname servername :realname
-	s:send("USER " .. string.format("%s %s %s :%s\r\n\r\n", params.nick, params.nick, params.nick, params.nick))
+	s:send("USER " .. string.format("%s %s %s :%s\r\n\r\n", params.nick, params.nick, params.nick, params.fullname))
 	s:send("NICK " .. params.nick .. "\r\n\r\n")
 
 	return s
