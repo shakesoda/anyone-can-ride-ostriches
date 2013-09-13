@@ -86,8 +86,23 @@ function process_channel(s, channel, nick, line)
 				games[channel] = nil
 			end
 
-			if command:find("next") == 1 then
+			if command:find("next") == 1 and game.state == "submitting" then
 				game:begin_round()
+			end
+
+			if command:find("continue") == 1 then
+				if game.state == "new" then
+					game:begin_round()
+				elseif game.state == "submitting" then
+					game:begin_vote()
+				elseif game.state == "voting" then
+					game:end_round()
+				elseif game.state == "waiting" then
+					game:begin_round()
+				elseif game.state == "finished" then
+					games[channel] = nil
+					msg(s, channel, "There is no game currently running.")
+				end
 			end
 		end
 

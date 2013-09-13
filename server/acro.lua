@@ -21,6 +21,7 @@ function acro.new_game(self, mode, options)
 	self.players = {}
 	self.player_count = 0
 	self.scores = {}
+	self.state = "new"
 
 	self.log = print
 	self.print = print
@@ -133,6 +134,8 @@ function acro:begin_round(manual)
 	self:generate_acro(manual)
 	-- TODO: put begin vote on timer
 
+	self.state = "submitting"
+
 	self.print("The acro for this round is "..self.current_acro..". Voting begins in "..settings.time_limit.." seconds.")
 end
 
@@ -163,8 +166,11 @@ function acro:end_round()
 		self.print(player .. ": " .. score)
 	end
 
+	self.state = "waiting"
+
 	if winner.score > settings.score_limit then
 		self:end_game()
+		self.state = "finished"
 	end
 end
 
@@ -193,6 +199,7 @@ function acro:begin_vote()
 		-- TODO: shuffle acro list and store the IDs
 	end
 
+	self.state = "voting"
 
 	self:list_acros()
 
@@ -206,11 +213,12 @@ function acro:vote(voter, id)
 	for player, acro in pairs(self.acros) do
 		if acro.idx == id then
 			if acro.player == voter then
-				self.print "You can't vote for yourself!"
+				self.tell(voter, "You can't vote for yourself!")
 			else
 				if not self.votes[id] then
 					self.votes[id] = acro
 				end
+				self.tell(voter, "Your vote for acro " .. id .. " has been recorded.")
 				self.votes[id].score = self.votes[id].score + 1
 			end
 			break
