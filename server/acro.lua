@@ -22,17 +22,24 @@ function acro.new_game(self, mode, options)
 	self.player_count = 0
 	self.scores = {}
 
+	self.log = print
+	self.print = print
+
+	self.tell = function(nick, ...)
+		print(nick, ...)
+	end
+
 	return self
 end
 
 function acro:end_game(winner)
-	print(winner.player .. " wins!")
+	self.print(winner.player .. " wins!")
 end
 
 function acro:add_player(name)
 	local settings = self.settings[self.settings.mode]
 	if self.player_count > settings.player_limit then
-		print("The room is full, sorry.")
+		self.print("The room is full, sorry.")
 		return
 	end
 	-- don't nuke a player if they join again (disconnects and shit)
@@ -55,15 +62,17 @@ function acro:remove_player(name)
 	end
 end
 
-function acro:validate(text)
+function acro:validate(player, text)
 	local count = 0
 	local errors = {}
 	-- TODO: probably use some error codes and let the various modes change messages
 	-- also needed for penalties.
-	for player, acro in pairs(self.acros) do
+	for _, acro in pairs(self.acros) do
 		if text == acro.text then
 			self.acros[acro.player] = nil -- filthy casuals
-			table.insert(errors, "you idiots submitted the same acros like a bunch of xxxtacos!")
+			self.tell(player, "you idiot, you and " .. acro.player .. " submitted the same acros like a bunch of xxxtacos!")
+			self.print(player .. " and " .. acro.player .. " submitted the same things like a bunch of xxxtacos!")
+			return false, {}
 		end
 	end
 	for token in text:split() do
@@ -83,13 +92,17 @@ function acro:validate(text)
 end
 
 function acro:submit_acro(name, text)
-	local valid, errors = acro:validate(text)
+	self.log(name .. " submitted: " .. text)
+	local valid, errors = acro:validate(name, text)
 	if valid then
+		self.tell(name, "Your acro \"" .. text .."\" has been registered. You may change it at any time before voting begins.")
 		self.acros[name] = { text=text, idx=0, score=0, player=name }
 	else
-		print ("Look how many ways you've fucked up, " .. name .. ":")
-		for i, v in ipairs(errors) do
-			print(i .. ": "..v)
+		if #errors > 0 then
+			self.tell(name, "Look how many ways you've fucked up:")
+			for i, v in ipairs(errors) do
+				self.tell(name, i .. ": "..v)
+			end
 		end
 	end
 end
@@ -120,8 +133,7 @@ function acro:begin_round(manual)
 	self:generate_acro(manual)
 	-- TODO: put begin vote on timer
 
-	print() -- gimme some space
-	print("The acro for this round is "..self.current_acro..". Voting begins in "..settings.time_limit.." seconds.")
+	self.print("The acro for this round is "..self.current_acro..". Voting begins in "..settings.time_limit.." seconds.")
 end
 
 function acro:end_round()
@@ -137,18 +149,18 @@ function acro:end_round()
 			self.scores[acro.player] = 0
 		end
 		self.scores[acro.player] = self.scores[acro.player] + acro.score
-		print(acro.player .. "'s acro: "..acro.text.." (".. acro.score .." votes)")
+		self.print(acro.player .. "'s acro: "..acro.text.." (".. acro.score .." votes)")
 	end
 
 	if winner.player == nil then
-		print("Nobody won! What a bunch of losers!")
+		self.print("Nobody won! What a bunch of losers!")
 	else
-		print("The winner for this round is "..winner.player.."!")
+		self.print("The winner for this round is "..winner.player.."!")
 	end
 
-	print("Scores:")
+	self.print("Scores:")
 	for player, score in pairs(self.scores) do
-		print(player .. ": " .. score)
+		self.print(player .. ": " .. score)
 	end
 
 	if winner.score > settings.score_limit then
@@ -166,14 +178,14 @@ function acro:list_acros()
 		if player.score > settings.score_limit * 0.9 and math.random(1,3) == 2 then
 			outLine = outLine .. " (btw this is "..player.."'s acro)"
 		end
-		print(outLine)
+		self.print(outLine)
 		idx = idx + 1
 	end
 end
 
 function acro:begin_vote()
 	if next(self.acros) == nil then
-		print "Nobody submitted anything!"
+		self.print "Nobody submitted anything!"
 		return
 	end
 
@@ -194,7 +206,7 @@ function acro:vote(voter, id)
 	for player, acro in pairs(self.acros) do
 		if acro.idx == id then
 			if acro.player == voter then
-				print "You can't vote for yourself!"
+				self.print "You can't vote for yourself!"
 			else
 				if not self.votes[id] then
 					self.votes[id] = acro
@@ -205,3 +217,5 @@ function acro:vote(voter, id)
 		end
 	end
 end
+
+return acro

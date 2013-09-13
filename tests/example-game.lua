@@ -1,4 +1,4 @@
-require "./server/acro"
+local acro = require "./server/acro"
 
 local game = acro:new_game()
 
