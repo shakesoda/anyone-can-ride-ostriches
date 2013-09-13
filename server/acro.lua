@@ -37,6 +37,17 @@ function acro:end_game(winner)
 	self.print(winner.player .. " wins!")
 end
 
+function acro:set_hook(callback, time)
+	self.deadline = time
+	self.callback = callback
+end
+
+function acro:process_hook(time)
+	if time > self.deadline then
+		self:callback()
+	end
+end
+
 function acro:add_player(name)
 	local settings = self.settings[self.settings.mode]
 	if self.player_count > settings.player_limit then
@@ -136,7 +147,6 @@ function acro:begin_round(manual)
 	self.votes = {}
 
 	self:generate_acro(manual)
-	-- TODO: put begin vote on timer
 
 	self.state = "submitting"
 
@@ -179,6 +189,8 @@ function acro:end_round()
 	if winner.score > settings.score_limit then
 		self:end_game()
 		self.state = "finished"
+	else
+		self.print("The next round will begin in " .. settings.time_between_rounds .. " seconds.")
 	end
 end
 
@@ -198,9 +210,12 @@ function acro:list_acros()
 end
 
 function acro:begin_vote()
+	local settings = self.settings[self.settings.mode]
 	if next(self.acros) == nil then
 		self.print "Nobody submitted anything!"
 		return
+	else
+		self.print ("Time to vote! You've got " .. settings.voting_time_limit .. " seconds.")
 	end
 
 	for player, acro in pairs(self.acros) do
@@ -210,14 +225,10 @@ function acro:begin_vote()
 	self.state = "voting"
 
 	self:list_acros()
-
-	-- TODO: put end round on timer
 end
 
-
 function acro:vote(voter, id)
-	-- TODO: dq acro if someone votes for themselves like an asshole
-	-- usually it's just a message and no DQ, but it could be an option
+	-- TODO: players should only get one vote per round (but they can change their mind)
 	id = tonumber(id)
 	for player, acro in pairs(self.acros) do
 		if acro.idx == id then

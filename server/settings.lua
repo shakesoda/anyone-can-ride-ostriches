@@ -1,9 +1,12 @@
 return {
 	mode = "normal",
 	normal = {
+		startup_delay = 10,
+		time_limit = 60,
+		voting_time_limit = 30,
+		time_between_rounds = 15,
 		player_limit = 15,
 		score_limit = 50,
-		time_limit = 60,
 		min_length = 2,
 		max_length = 5,
 		super_length = 10,
@@ -12,9 +15,12 @@ return {
 		allow_super = false
 	},
 	turkeyslam = {
+		startup_delay = 10,
+		time_limit = 60,
+		voting_time_limit = 30,
+		time_between_rounds = 15,
 		player_limit = 15,
 		score_limit = 75,
-		time_limit = 60,
 		min_length = 2,
 		max_length = 5,
 		super_length = 10,

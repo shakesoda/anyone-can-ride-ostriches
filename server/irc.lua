@@ -35,6 +35,25 @@ function ping_reply(s, receive)
 	end
 end
 
+function next_state(game)
+	local settings = game.settings[game.settings.mode]
+	local time_limit = 10
+	if game.state == "new" then
+		game:begin_round()
+		time_limit = settings.startup_delay
+	elseif game.state == "submitting" then
+		game:begin_vote()
+		time_limit = settings.submitting_time_limit
+	elseif game.state == "voting" then
+		game:end_round()
+		time_limit = settings.voting_time_limit
+	elseif game.state == "waiting" then
+		game:begin_round()
+		time_limit = settings.time_between_rounds
+	end
+	game:set_hook(next_state, os.time() + time_limit)
+end
+
 function process_channel(s, channel, nick, line)
 	if line:find("!") == 1 then
 		local command = line:sub(2)
@@ -76,7 +95,7 @@ function process_channel(s, channel, nick, line)
 				print(...)
 				msg(s, channel, table.concat({...}, ", "))
 			end
-			acro:begin_round()
+			next_state(games[channel])
 		end
 
 		local game = games[channel]
@@ -91,15 +110,8 @@ function process_channel(s, channel, nick, line)
 			end
 
 			if command:find("continue") == 1 then
-				if game.state == "new" then
-					game:begin_round()
-				elseif game.state == "submitting" then
-					game:begin_vote()
-				elseif game.state == "voting" then
-					game:end_round()
-				elseif game.state == "waiting" then
-					game:begin_round()
-				elseif game.state == "finished" then
+				next_state(game)
+				if game.state == "finished" then
 					games[channel] = nil
 					msg(s, channel, "There is no game currently running.")
 				end
@@ -162,6 +174,10 @@ function run(settings)
 					return
 				end
 			end
+		end
+
+		for channel, game in pairs(games) do
+			game:process_hook(os.time())
 		end
 
 		if settings.verbose then print(receive) end
