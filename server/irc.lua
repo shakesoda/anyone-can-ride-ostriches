@@ -115,9 +115,13 @@ end
 function process_message(s, channel, nick, line)
 	local game = games[settings.channel]
 	if game then
-		game:add_player(nick)
-		game:submit_acro(nick, line)
-		game:list_acros()
+		if game.state == "submitting" then
+			game:add_player(nick)
+			game:submit_acro(nick, line)
+		end
+		if game.state == "voting" then
+			game:vote(nick, line)
+		end
 	end
 
 	return true

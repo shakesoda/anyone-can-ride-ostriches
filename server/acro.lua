@@ -96,7 +96,9 @@ function acro:submit_acro(name, text)
 	self.log(name .. " submitted: " .. text)
 	local valid, errors = acro:validate(name, text)
 	if valid then
+		self.acro_count = self.acro_count + 1
 		self.tell(name, "Your acro \"" .. text .."\" has been registered. You may change it at any time before voting begins.")
+		self.print("Acro #" .. self.acro_count .. " submitted")
 		self.acros[name] = { text=text, idx=0, score=0, player=name }
 	else
 		if #errors > 0 then
@@ -129,6 +131,8 @@ function acro:begin_round(manual)
 	local settings = self.settings[self.settings.mode]
 
 	self.acros = {}
+	self.acro_count = 0
+
 	self.votes = {}
 
 	self:generate_acro(manual)
@@ -161,10 +165,14 @@ function acro:end_round()
 		self.print("The winner for this round is "..winner.player.."!")
 	end
 
-	self.print("Scores:")
+	local scores = ""
 	for player, score in pairs(self.scores) do
-		self.print(player .. ": " .. score)
+		if scores:len() > 0 then
+			scores = scores .. ", "
+		end
+		scores = scores .. player .. ": " .. score
 	end
+	self.print("Scores: " .. scores)
 
 	self.state = "waiting"
 
@@ -210,6 +218,7 @@ end
 function acro:vote(voter, id)
 	-- TODO: dq acro if someone votes for themselves like an asshole
 	-- usually it's just a message and no DQ, but it could be an option
+	id = tonumber(id)
 	for player, acro in pairs(self.acros) do
 		if acro.idx == id then
 			if acro.player == voter then
@@ -221,9 +230,10 @@ function acro:vote(voter, id)
 				self.tell(voter, "Your vote for acro " .. id .. " has been recorded.")
 				self.votes[id].score = self.votes[id].score + 1
 			end
-			break
+			return
 		end
 	end
+	self.tell(voter, id .. " is not a valid acro.")
 end
 
 return acro
