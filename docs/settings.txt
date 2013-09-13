@@ -3,6 +3,10 @@ Acro Settings
 
 Shared Settings
 ---------------
+* game	(default value: "acro")
+Sets the default game.
+The file "(game).lua" is assumed to exist in the server directory.
+
 * mode	(default value: "normal")
 Sets the default play mode, where the value represents one of the rulesets.
 
@@ -29,15 +33,22 @@ A mode in which you must reach -151 via duping other players multiple times.
 
 Ruleset Configuration
 ---------------------
+* startup_delay
+Time to wait before the game starts (in seconds).
+
+* voting_time_limit
+Time to allow votes (in seconds).
+
+* time_between_rounds
+Amount of time to wait between rounds (in seconds).
+
 * player_limit
 The maximum number of players allowed in a game.
 
 * score_limit
 The default score at which the game ends. This may be changed by special rules. 
 
-* time_limit
-(unspecified) time limit. (between rounds? waiting for acros and voting?)
-
+[Acro-specific Options]
 * min_length
 Minimum acro length, excluding special rules.
 

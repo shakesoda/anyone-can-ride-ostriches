@@ -1,5 +1,8 @@
 return {
+	game = "acro",
 	mode = "normal",
+
+	-- rulesets
 	normal = {
 		startup_delay = 10,
 		time_limit = 60,
