@@ -68,6 +68,7 @@ function process_channel(s, channel, nick, line)
 			msg(s, channel, "Commands:")
 			for k, v in pairs(help) do msg(s, channel, string.format("!%s: %s", k, v)) end
 		end
+		-- this works until you change your name to nepgear, holo, nepzilla, et al.
 		if nick == "shakesoda" then
 			if command:find("kill") then
 				return false
