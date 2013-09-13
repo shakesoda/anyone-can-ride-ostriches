@@ -1,11 +1,5 @@
 acro = {}
 
--- game settings
-acro.settings = require "./server/settings"
-acro.hooks = { normal = {} }
-acro.players = {}
-acro.scores = {}
-
 -- http://stackoverflow.com/questions/1426954
 function string:split(pat)
 	pat = pat or '%s+'
@@ -17,7 +11,30 @@ function string:split(pat)
 	return function() if st then return getter(st, g()) end end
 end
 
+function acro.new_game(self, mode, options)
+	setmetatable(self, acro)
+	-- game settings
+	self.settings = require "./server/settings"
+	if mode and self.settings[mode] then
+		game.settings.mode = mode
+	end
+	self.players = {}
+	self.player_count = 0
+	self.scores = {}
+
+	return self
+end
+
+function acro:end_game(winner)
+	print(winner.player .. " wins!")
+end
+
 function acro:add_player(name)
+	local settings = self.settings[self.settings.mode]
+	if self.player_count > settings.player_limit then
+		print("The room is full, sorry.")
+		return
+	end
 	-- don't nuke a player if they join again (disconnects and shit)
 	if self.players[name] then
 		self.players[name].active = true
@@ -27,12 +44,14 @@ function acro:add_player(name)
 	self.players[name] = {}
 	self.players[name].active = true
 	self.players[name].score = 0
+	self.player_count = self.player_count + 1
 end
 
 function acro:remove_player(name)
 	-- don't clear score until end of round in case they disconnected
 	if self.players[name] then
 		self.players[name].active = false
+		self.player_count = self.player_count - 1
 	end
 end
 
@@ -106,6 +125,8 @@ function acro:begin_round(manual)
 end
 
 function acro:end_round()
+	local settings = self.settings[self.settings.mode]
+
 	-- TODO: declare winner, fuck with points.
 	local winner = { score = 0, text = "everyone loses" }
 	for _, acro in pairs(self.acros) do
@@ -128,6 +149,10 @@ function acro:end_round()
 	print("Scores:")
 	for player, score in pairs(self.scores) do
 		print(player .. ": " .. score)
+	end
+
+	if winner.score > settings.score_limit then
+		self:end_game()
 	end
 end
 
