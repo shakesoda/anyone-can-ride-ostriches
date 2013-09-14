@@ -66,8 +66,9 @@ function process_channel(s, channel, nick, line)
 		end
 		if command:find("help") == 1 then
 			local help = {
-				kill = "(admin) kill the bot",
-				toggle_verbose = "(admin) toggle echoing everything back into the channel (debug)"
+				start, = "(acro) start a game.",
+				stop = "(acro) end the game, although it'll stop itself after 5 rounds if nobody is playing.",
+				skip = "(acro) generate a new acro. don't be a dick."
 			}
 			msg(s, channel, "Commands:")
 			for k, v in pairs(help) do msg(s, channel, string.format("!%s: %s", k, v)) end
