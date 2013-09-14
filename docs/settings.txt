@@ -68,6 +68,6 @@ point redistribution.
 * allow_super
 If true, enables acros of "super" length, defined in super_length above.
 
-Settings not yet included:
-* letter_weights
-Allows for better distribution of letters in acros.
+* weights
+A table mapping letters to letter frequencies. The higher the number, the more
+likely that letter is going to appear in an acro.
