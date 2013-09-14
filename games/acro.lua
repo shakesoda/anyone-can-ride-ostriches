@@ -273,7 +273,6 @@ function acro:begin_vote()
 end
 
 function acro:vote(voter, id)
-	-- TODO: players should only get one vote per round (but they can change their mind)
 	id = tonumber(id)
 	for player, acro in pairs(self.acros) do
 		if acro.idx == id then
