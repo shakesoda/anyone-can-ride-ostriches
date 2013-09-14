@@ -108,9 +108,13 @@ function acro:submit_acro(name, text)
 	self.log(name .. " submitted: " .. text)
 	local valid, errors = acro:validate(name, text)
 	if valid then
-		self.acro_count = self.acro_count + 1
 		self.tell(name, "Your acro \"" .. text .."\" has been registered. You may change it at any time before voting begins.")
-		self.print("Acro #" .. self.acro_count .. " submitted")
+
+		if self.acros[name] == nil then
+			self.acro_count = self.acro_count + 1
+			self.print("Acro #" .. self.acro_count .. " submitted")
+		end
+
 		self.acros[name] = { text=text, idx=0, score=0, player=name }
 	else
 		if #errors > 0 then
@@ -133,9 +137,18 @@ function acro:generate_acro(manual)
 	local settings = self.settings[self.settings.mode]
 	self.current_acro = ""
 
+	local weights = settings.weights
+	local bag = {}
+
+	for l,v in pairs(weights) do
+		for i=1,v do
+			table.insert(bag, l)
+		end
+	end
+
 	math.randomseed(os.time())
 	for i=1,math.random(settings.min_length, settings.max_length) do
-		self.current_acro = self.current_acro .. string.char(math.random(65, 90))
+		self.current_acro = self.current_acro .. bag[math.random(#bag)]
 	end
 end
 
@@ -157,13 +170,17 @@ end
 function acro:end_round()
 	local settings = self.settings[self.settings.mode]
 
-	-- TODO: declare winner, fuck with points.
+	-- apply votes
+	for player, vote in pairs(self.votes) do
+		vote.score = vote.score + 1
+	end
+
 	local winner = { score = 0, text = "everyone loses" }
 	for _, acro in pairs(self.acros) do
 		if acro.score > winner.score then
 			winner = acro
 		end
-		if not self.scores[acro.player] then
+		if self.scores[acro.player] == nil then
 			self.scores[acro.player] = 0
 		end
 		self.scores[acro.player] = self.scores[acro.player] + acro.score
@@ -244,11 +261,10 @@ function acro:vote(voter, id)
 			if acro.player == voter then
 				self.tell(voter, "You can't vote for yourself!")
 			else
-				if not self.votes[id] then
+				if self.votes[id] == nil then
 					self.votes[id] = acro
 				end
 				self.tell(voter, "Your vote for acro " .. id .. " has been recorded.")
-				self.votes[id].score = self.votes[id].score + 1
 			end
 			return
 		end
