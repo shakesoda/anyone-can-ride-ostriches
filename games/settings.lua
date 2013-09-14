@@ -1,10 +1,9 @@
-return {
+local settings = {
 	game = "acro",
 	mode = "normal",
 
 	-- rulesets
 	normal = {
-		startup_delay = 10,
 		time_limit = 60,
 		voting_time_limit = 30,
 		time_between_rounds = 15,
@@ -18,7 +17,6 @@ return {
 		allow_super = false
 	},
 	turkeyslam = {
-		startup_delay = 10,
 		time_limit = 60,
 		voting_time_limit = 30,
 		time_between_rounds = 15,
@@ -32,3 +30,7 @@ return {
 		allow_super = true -- super 10 letter rounds
 	}
 }
+
+setmetatable(settings, { __index = function(t, k) print("invalid setting! (attempt to access \"" .. k .. "\")") return 0 end })
+
+return settings
