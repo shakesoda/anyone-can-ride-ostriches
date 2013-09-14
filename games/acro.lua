@@ -116,6 +116,10 @@ function acro:submit_acro(name, text)
 		end
 
 		self.acros[name] = { text=text, idx=0, score=0, player=name }
+
+		if self.scores[name] == nil then
+			self.scores[name] = 0
+		end
 	else
 		if #errors > 0 then
 			self.tell(name, "Look how many ways you've fucked up:")
@@ -177,20 +181,31 @@ function acro:end_round()
 
 	local winner = { score = 0, text = "everyone loses" }
 	for _, acro in pairs(self.acros) do
+		local disqualified = self.votes[acro.player] == nil
+		local message = ""
+
 		if acro.score > winner.score then
 			winner = acro
+			winner.disqualified = disqualified
 		end
-		if self.scores[acro.player] == nil then
-			self.scores[acro.player] = 0
+
+		-- must vote if you entered, or no points!
+		if not disqualified then
+			self.scores[acro.player] = self.scores[acro.player] + acro.score
+		else
+			message = " - but " .. acro.player .. " didn't vote!"
 		end
-		self.scores[acro.player] = self.scores[acro.player] + acro.score
-		self.print(acro.player .. "'s acro: "..acro.text.." (".. acro.score .." votes)")
+
+		self.print(acro.player .. "'s acro: "..acro.text.." (".. acro.score .." vote(s))" .. message)
 	end
 
 	if winner.player == nil then
 		self.print("Nobody won! What a bunch of losers!")
 	else
-		self.print("The winner for this round is "..winner.player.."!")
+		if winner.disqualified then
+			message = " But they didn't vote, so they get no points!"
+		end
+		self.print("The winner for this round is "..winner.player.."!" .. message)
 	end
 
 	local scores = ""
@@ -204,7 +219,7 @@ function acro:end_round()
 
 	self.state = "waiting"
 
-	if winner.score > settings.score_limit then
+	if winner.player and self.scores[winner.player] > settings.score_limit then
 		self:end_game()
 		self.state = "finished"
 	else
