@@ -8,7 +8,7 @@ local settings = {
 		voting_time_limit = 30,
 		time_between_rounds = 15,
 		player_limit = 15,
-		score_limit = 50,
+		score_limit = 31,
 		min_length = 3,
 		max_length = 5,
 		super_length = 10,
@@ -26,13 +26,18 @@ local settings = {
 		voting_time_limit = 30,
 		time_between_rounds = 15,
 		player_limit = 15,
-		score_limit = 75,
+		score_limit = 31,
 		min_length = 2,
 		max_length = 5,
 		super_length = 10,
 		allow_cockblock = true, -- you're not allowed to win
 		allow_communism = true, -- fuck you! freem gets the point instead
-		allow_super = true -- super 10 letter rounds
+		allow_super = true, -- super 10 letter rounds
+		weights = {
+			A = 10, B = 8, C = 6, D = 4, E = 5, F = 6, G = 4, H = 6, I = 9,
+			J =  5, K = 5, L = 4, M = 6, N = 4, O = 1, P = 4, Q = 1, R = 6,
+			S = 12, T = 9, U = 3, V = 3, W = 2, X = 1, Y = 2, Z = 2
+		}
 	}
 }
 
