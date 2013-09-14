@@ -38,20 +38,23 @@ end
 
 function next_state(game)
 	local settings = game.settings[game.settings.mode]
-	local time_limit = 10
-	if game.state == "new" then
+	local time_limit = 5
+	if game.state == "new" or game.state == "waiting" then
 		game:begin_round()
-		time_limit = settings.startup_delay
+		time_limit = settings.time_limit
 	elseif game.state == "submitting" then
 		game:begin_vote()
-		time_limit = settings.submitting_time_limit
+		if game.state == "waiting" then
+			game:end_round()
+			time_limit = settings.time_between_rounds
+		else
+			time_limit = settings.voting_time_limit
+		end
 	elseif game.state == "voting" then
 		game:end_round()
-		time_limit = settings.voting_time_limit
-	elseif game.state == "waiting" then
-		game:begin_round()
 		time_limit = settings.time_between_rounds
 	end
+	--print("time limit: " .. time_limit, "state: " .. game.state)
 	game:set_hook(next_state, os.time() + time_limit)
 end
 
@@ -107,10 +110,12 @@ function process_channel(s, channel, nick, line)
 				games[channel] = nil
 			end
 
-			if command:find("next") == 1 and game.state == "submitting" then
-				game:begin_round()
+			if command:find("skip") == 1 and game.state == "submitting" then
+				game.state = "waiting"
+				next_state(game)
 			end
 
+			--[[
 			if command:find("continue") == 1 then
 				next_state(game)
 				if game.state == "finished" then
@@ -118,6 +123,7 @@ function process_channel(s, channel, nick, line)
 					msg(s, channel, "There is no game currently running.")
 				end
 			end
+			--]]
 		end
 
 		return true
@@ -141,48 +147,72 @@ function process_message(s, channel, nick, line)
 	return true
 end
 
+function handle_receive(s, receive)	
+	-- reply to ping
+	ping_reply(s, receive)
+	if receive:find(":End of /MOTD command.") then
+		s:send("JOIN " .. settings.channel .. "\r\n\r\n")
+		joined = true
+	end
+
+	-- parsing mostly copy/pasted from https://github.com/davidshaw/ircbot.lua
+	if joined and receive:find("PRIVMSG") then
+		local line = nil
+		local channel = channel
+		if settings.verbose then msg(s, settings.channel, receive) end
+
+		local start = receive:find("PRIVMSG ") + 8
+		local channel = receive:sub(start, receive:find(" :") - 1)
+		if receive:find(" :") then line = receive:sub((receive:find(" :") + 2)) end
+		if receive:find(":") and receive:find("!") then lnick = receive:sub(receive:find(":")+1, receive:find("!")-1) end
+
+		-- for private messages, we want to talk back to the sender.
+		if channel == settings.nick then channel = lnick end
+		if line then
+			local process = (channel == settings.channel) and process_channel or process_message
+			if not process(s, channel, lnick, line) then
+				s:send("QUIT :Goodbye, cruel world!\r\n\r\n")
+				s:close()
+				return false
+			end
+		end
+	end
+
+	if settings.verbose then print(receive) end
+
+	return true
+end
+
 function run(settings)
 	local s = connect(settings)
 	local joined = false
 
+	if s == nil then
+		return run(settings)
+	end
+
 	while true do
-		local receive = s:receive('*l')
-		
-		-- reply to ping
-		ping_reply(s, receive)
-		if receive:find(":End of /MOTD command.") then
-			s:send("JOIN " .. settings.channel .. "\r\n\r\n")
-			joined = true
-		end
+		local ready = socket.select({s}, nil, 0.1)
 
-		-- https://github.com/davidshaw/ircbot.lua
-		if joined and receive:find("PRIVMSG") then
-			local line = nil
-			local channel = channel
-			if settings.verbose then msg(s, settings.channel, receive) end
+		-- process incoming, reply as needed
+		if ready[s] then
+			local receive = s:receive('*l')
 
-			local start = receive:find("PRIVMSG ") + 8
-			local channel = receive:sub(start, receive:find(" :") - 1)
-			if receive:find(" :") then line = receive:sub((receive:find(" :") + 2)) end
-			if receive:find(":") and receive:find("!") then lnick = receive:sub(receive:find(":")+1, receive:find("!")-1) end
+			if receive == nil then
+				print("Timed out.. attempting to reconnect!")
+				return run(settings)
+			end
 
-			-- for private messages, we want to talk back to the sender.
-			if channel == settings.nick then channel = lnick end
-			if line then
-				local process = (channel == settings.channel) and process_channel or process_message
-				if not process(s, channel, lnick, line) then
-					s:send("QUIT :Goodbye, cruel world!\r\n\r\n")
-					s:close()
-					return
-				end
+			if not handle_receive(s, receive) then
+				print("killed by user")
+				return
 			end
 		end
 
+		-- update game timers
 		for channel, game in pairs(games) do
 			game:process_hook(os.time())
 		end
-
-		if settings.verbose then print(receive) end
 	end
 end
 

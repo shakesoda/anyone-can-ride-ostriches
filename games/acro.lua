@@ -213,6 +213,7 @@ function acro:begin_vote()
 	local settings = self.settings[self.settings.mode]
 	if next(self.acros) == nil then
 		self.print "Nobody submitted anything!"
+		self.state = "waiting"
 		return
 	else
 		self.print ("Time to vote! You've got " .. settings.voting_time_limit .. " seconds.")
