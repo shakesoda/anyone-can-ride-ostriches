@@ -41,7 +41,7 @@ local settings = {
 	},
 	turkeyslam = {
 		time_limit = 60,
-		voting_time_limit = 30,
+		voting_time_limit = 45,
 		time_between_rounds = 15,
 		player_limit = 15,
 		score_limit = 31,
