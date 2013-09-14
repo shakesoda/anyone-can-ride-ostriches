@@ -66,7 +66,7 @@ function process_channel(s, channel, nick, line)
 		end
 		if command:find("help") == 1 then
 			local help = {
-				start, = "(acro) start a game.",
+				start = "(acro) start a game.",
 				stop = "(acro) end the game, although it'll stop itself after 5 rounds if nobody is playing.",
 				skip = "(acro) generate a new acro. don't be a dick."
 			}
