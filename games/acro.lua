@@ -193,7 +193,11 @@ function acro:end_round()
 		if not disqualified then
 			self.scores[acro.player] = self.scores[acro.player] + acro.score
 		else
-			message = " - but " .. acro.player .. " didn't vote!"
+			if acro.score == 0 then
+				message = " and they also didn't vote."
+			else
+				message = " - but " .. acro.player .. " didn't vote!"
+			end
 		end
 
 		self.print(acro.player .. "'s acro: "..acro.text.." (".. acro.score .." vote(s))" .. message)
