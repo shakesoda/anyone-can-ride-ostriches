@@ -22,6 +22,7 @@ function acro.new_game(self, mode, options)
 	self.player_count = 0
 	self.scores = {}
 	self.state = "new"
+	self.empty_rounds = 0
 
 	self.log = print
 	self.print = print
@@ -212,11 +213,18 @@ end
 function acro:begin_vote()
 	local settings = self.settings[self.settings.mode]
 	if next(self.acros) == nil then
-		self.print "Nobody submitted anything!"
-		self.state = "waiting"
+		self.print("Nobody submitted anything!")
+		self.empty_rounds = self.empty_rounds + 1
+		if self.empty_rounds < 5 then
+			self.state = "waiting"
+		else
+			self.print("Nobody submitted anything for 5 rounds in a row. I give up.")
+			self.state = "finished"
+		end
 		return
 	else
-		self.print ("Time to vote! You've got " .. settings.voting_time_limit .. " seconds.")
+		self.empty_rounds = 0
+		self.print("Time's up! You've got " .. settings.voting_time_limit .. " seconds to vote.")
 	end
 
 	for player, acro in pairs(self.acros) do
