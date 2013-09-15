@@ -12,15 +12,22 @@ function string:split(pat)
 end
 
 function acro.new_game(self, mode, options)
+	-- fix me
 	setmetatable(self, acro)
+
 	-- game settings
 	self.settings = require "games/settings"
 	if mode and self.settings[mode] then
 		game.settings.mode = mode
 	end
+
+	-- name = player {}
 	self.players = {}
 	self.player_count = 0
+
+	-- name = acro {}
 	self.scores = {}
+
 	self.state = "new"
 	self.empty_rounds = 0
 
@@ -159,9 +166,11 @@ end
 function acro:begin_round(manual)
 	local settings = self.settings[self.settings.mode]
 
+	-- name = acro {}
 	self.acros = {}
 	self.acro_count = 0
 
+	-- name = acro {}
 	self.votes = {}
 
 	self:generate_acro(manual)
