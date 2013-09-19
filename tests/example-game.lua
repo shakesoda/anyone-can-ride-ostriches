@@ -16,9 +16,11 @@ game:begin_vote()
 
 game:vote("freem", 2)
 game:vote("shakesoda", 2) -- you can't vote for your own acro!! check. (exactly)
-game:vote("xxxtaco", 2)
+game:vote("xxxtaco", 1)
+game:vote("nepgear", 1)
 
-game:end_round() -- should be called on timer and ignore further votes
+-- winner should be freem, shakesoda's acro should be disqualified
+game:end_round()
 
 -- round 2
 game:begin_round("DUPE")
