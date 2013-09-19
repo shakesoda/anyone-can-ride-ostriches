@@ -233,7 +233,7 @@ function acro:end_round()
 
 	self.state = "waiting"
 
-	if winner.player and self.scores[winner.player] > settings.score_limit then
+	if winner.player and self.scores[winner.player] >= settings.score_limit then
 		self:end_game()
 		self.state = "finished"
 	else
