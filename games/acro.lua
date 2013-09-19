@@ -1,15 +1,6 @@
-acro = {}
+require "common/utils"
 
--- http://stackoverflow.com/questions/1426954
-function string:split(pat)
-	pat = pat or '%s+'
-	local st, g = 1, self:gmatch("()("..pat..")")
-	local function getter(segs, seps, sep, cap1, ...)
-		st = sep and seps + #sep
-		return self:sub(segs, (seps or 0) - 1), cap1 or sep, ...
-	end
-	return function() if st then return getter(st, g()) end end
-end
+acro = {}
 
 function acro.new_game(self, mode, options)
 	-- fix me
@@ -17,9 +8,14 @@ function acro.new_game(self, mode, options)
 
 	-- game settings
 	self.settings = require "games/settings"
+
+	-- make sure changes stick to this specific game
+	self.settings = deepcopy(self.settings)
 	if mode and self.settings[mode] then
 		game.settings.mode = mode
 	end
+
+	self.round = 0
 
 	-- name = player {}
 	self.players = {}
@@ -42,7 +38,8 @@ function acro.new_game(self, mode, options)
 end
 
 function acro:end_game(winner)
-	self.print(winner.player .. " wins!")
+	self.state = "finished"
+	self.print("/!\\ " .. winner.player .. " wins!")
 end
 
 function acro:set_hook(callback, time)
@@ -56,21 +53,55 @@ function acro:process_hook(time)
 	end
 end
 
+function acro:set_option(key, value)
+	local settings = self.settings[self.settings.mode]
+	local valid_keys = {
+		time_limit = "number",
+		voting_time_limit = "number",
+		time_between_rounds = "number",
+		player_limit = "number",
+		score_limit = "number",
+		min_length = "number",
+		max_length = "number",
+		super_length = "number",
+		allow_cockblock = "boolean",
+		allow_communism = "boolean",
+		allow_super = "boolean"
+	}
+	if valid_keys[key] == "number" then
+		settings[key] = tonumber(value) or 1
+	elseif valid_keys[key] == "boolean" then
+		settings[key] = (value == "true")
+	else
+		self.print("Invalid key, probably.")
+		return
+	end
+	self.print(key .. " is now " .. tostring(settings[key]) .. " for the rest of the game.")
+end
+
 function acro:add_player(name)
 	local settings = self.settings[self.settings.mode]
-	if self.player_count > settings.player_limit then
-		self.print("The room is full, sorry.")
+	if self.player_count >= settings.player_limit then
+		self.print("The game is full, sorry.")
 		return
 	end
 	-- don't nuke a player if they join again (disconnects and shit)
 	if self.players[name] then
+		if self.players[name].active then
+			return
+		end
 		self.players[name].active = true
+		self.tell(name, "Welcome back!")
 		return
 	end
 
-	self.players[name] = {}
-	self.players[name].active = true
-	self.players[name].score = 0
+	self.tell(name, "Have fun! If you leave mid-game be sure to type !out into the channel (don't worry, your score will still be there if you come back).")
+
+	self.players[name] = {
+		active = true,
+		score = 0,
+		cockblocked = false
+	}
 	self.player_count = self.player_count + 1
 end
 
@@ -115,6 +146,7 @@ function acro:submit_acro(name, text)
 	self.log(name .. " submitted: " .. text)
 	local valid, errors = acro:validate(name, text)
 	if valid then
+			self:add_player(name)
 		self.tell(name, "Your acro \"" .. text .."\" has been registered. You may change it at any time before voting begins.")
 
 		if self.acros[name] == nil then
@@ -166,6 +198,8 @@ end
 function acro:begin_round(manual)
 	local settings = self.settings[self.settings.mode]
 
+	self.round = self.round + 1
+
 	-- name = acro {}
 	self.acros = {}
 	self.acro_count = 0
@@ -186,9 +220,10 @@ function acro:end_round()
 	-- apply votes
 	for player, vote in pairs(self.votes) do
 		vote.score = vote.score + 1
+		self.players[player].cockblocked = true
 	end
 
-	local winner = { score = 0, text = "everyone loses" }
+	local winner = { score = 0, text = "everyone loses", player = nil }
 	for _, acro in pairs(self.acros) do
 		local disqualified = self.votes[acro.player] == nil
 		local message = ""
@@ -209,7 +244,12 @@ function acro:end_round()
 			end
 		end
 
-		self.print(acro.player .. "'s acro: "..acro.text.." (".. acro.score .." vote(s))" .. message)
+		local vote_message = " (votes: ".. acro.score .. ")"
+		if acro.score == 0 then
+			vote_message = " got no votes"
+		end
+
+		self.print(acro.player .. "'s acro: ".. acro.text .. vote_message .. message)
 	end
 
 	if winner.player == nil then
@@ -219,7 +259,7 @@ function acro:end_round()
 		if winner.disqualified then
 			message = " But they didn't vote, so they get no points!"
 		end
-		self.print("The winner for this round is "..winner.player.."!" .. message)
+		self.print("The winner for round #"..self.round.." is "..winner.player.."!" .. message)
 	end
 
 	local scores = ""
@@ -234,8 +274,7 @@ function acro:end_round()
 	self.state = "waiting"
 
 	if winner.player and self.scores[winner.player] >= settings.score_limit then
-		self:end_game()
-		self.state = "finished"
+		self:end_game(winner)
 	else
 		self.print("The next round will begin in " .. settings.time_between_rounds .. " seconds.")
 	end
