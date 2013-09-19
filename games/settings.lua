@@ -5,8 +5,8 @@ local settings = {
 	-- rulesets (Acro)
 	normal = {
 		time_limit = 60,
-		voting_time_limit = 30,
-		time_between_rounds = 15,
+		voting_time_limit = 45,
+		time_between_rounds = 30,
 		player_limit = 15,
 		score_limit = 31,
 		min_length = 3,
