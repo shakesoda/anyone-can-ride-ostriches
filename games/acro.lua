@@ -215,6 +215,7 @@ function acro:end_round()
 	if winner.player == nil then
 		self.print("Nobody won! What a bunch of losers!")
 	else
+		local message = ""
 		if winner.disqualified then
 			message = " But they didn't vote, so they get no points!"
 		end
@@ -292,8 +293,8 @@ function acro:vote(voter, line)
 			if acro.player == voter then
 				self.tell(voter, "You can't vote for yourself!")
 			else
-				if self.votes[id] == nil then
-					self.votes[id] = acro
+				if self.votes[voter] == nil then
+					self.votes[voter] = acro
 				end
 				self.tell(voter, "Your vote for acro " .. id .. " has been recorded.")
 			end
