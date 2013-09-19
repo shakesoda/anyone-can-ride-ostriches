@@ -1,3 +1,5 @@
+require "common/utils"
+
 local socket = require "socket"
 local acro = require "games/acro"
 
@@ -59,75 +61,103 @@ function next_state(game)
 end
 
 function process_channel(s, channel, nick, line)
-	if line:find("!") == 1 then
-		local command = line:sub(2)
-		if command:find("debug") == 1 then
+	if line:find("!") ~= 1 then return true end
+
+	local command = line:sub(2)
+	local args = {}
+	for token in command:split() do
+		table.insert(args, token)
+	end
+
+	if args[1] == "help" then
+		local help = {
+			start = "(acro) start a game.",
+			stop = "(acro) end the game, although it'll stop itself after 5 rounds if nobody is playing.",
+			skip = "(acro) generate a new acro. don't be a dick."
+		}
+		msg(s, channel, "Commands:")
+		for k, v in pairs(help) do msg(s, channel, string.format("!%s: %s", k, v)) end
+	end
+	-- this works until you change your name to nepgear, holo, nepzilla, et al.
+	if nick == "shakesoda" then
+		if args[1] == "debug" and nick == "shakesoda" then
 			debug.debug()
 		end
-		if command:find("help") == 1 then
-			local help = {
-				start = "(acro) start a game.",
-				stop = "(acro) end the game, although it'll stop itself after 5 rounds if nobody is playing.",
-				skip = "(acro) generate a new acro. don't be a dick."
-			}
-			msg(s, channel, "Commands:")
-			for k, v in pairs(help) do msg(s, channel, string.format("!%s: %s", k, v)) end
+		if args[1] == "kill" then
+			return false
 		end
-		-- this works until you change your name to nepgear, holo, nepzilla, et al.
+	end
+
+	local game = games[channel]
+
+	if game and args[1] == "start" then
+		msg(s, channel, "There's already a game running!")
+	end
+	if not game and args[1] == "start" then
+		local mode = line:sub(7)
+		if mode:len() < 1 then
+			mode = nil
+		end
+		msg(s, channel, "/!\\ Game started /!\\")
+		games[channel] = acro:new_game(mode)
+
+		-- \t doesn't work well on all IRC clients.
+		games[channel].tell = function(nick, ...)
+			print(nick, ...)
+			msg(s, nick, table.concat({...}, ", "))
+		end
+		games[channel].print = function(...)
+			print(...)
+			msg(s, channel, table.concat({...}, ", "))
+		end
+		next_state(games[channel])
+	end
+
+	if game then
+		if args[1] == "stop" then
+			msg(s, channel, "/!\\ Game ended /!\\")
+			games[channel] = nil
+		end
+
+		if args[1] == "skip" and game.state == "submitting" then
+			game.state = "waiting"
+			next_state(game)
+		end
+
+		if args[1] == "in" then
+			game:add_player(nick)
+		end
+
+		if args[1] == "out" then
+			game:remove_player(nick)
+		end
+
+		-- TODO: is_admin, list of admins
 		if nick == "shakesoda" then
-			if command:find("kill") then
-				return false
+			-- ALL I DO IS WIN
+			if args[1] == "win" then
+				game:end_game { player = nick }
 			end
-			if command:find("toggle_verbose") then
-				settings.verbose = not settings.verbose
-				msg(s, channel, "settings.verbose = " .. tostring(settings.verbose))
-			end
-		end
-
-		if command:find("start") == 1 then
-			local mode = line:sub(7)
-			if mode:len() < 1 then
-				mode = nil
-			end
-			msg(s, channel, "/!\\ Game started /!\\")
-			games[channel] = acro:new_game(mode)
-
-			-- \t doesn't work well on all IRC clients.
-			games[channel].tell = function(nick, ...)
-				print(nick, ...)
-				msg(s, nick, table.concat({...}, ", "))
-			end
-			games[channel].print = function(...)
-				print(...)
-				msg(s, channel, table.concat({...}, ", "))
-			end
-			next_state(games[channel])
-		end
-
-		local game = games[channel]
-		if game then
-			if command:find("stop") == 1 then
-				msg(s, channel, "/!\\ Game ended /!\\")
-				games[channel] = nil
+			if args[1] == "set" then
+				if #args == 3 then
+					if args[2] == "verbose" then
+						settings.verbose = not settings.verbose
+					else
+						game:set_option(args[2], args[3])
+					end
+				else
+					msg(s, channel, "Wrong number of parameters! (got "..(#args-1).." , need 2)")
+				end
 			end
 
-			if command:find("skip") == 1 and game.state == "submitting" then
-				game.state = "waiting"
-				next_state(game)
-			end
-
-			--[[
-			if command:find("continue") == 1 then
+			if args[1] == "next" then
 				next_state(game)
 				if game.state == "finished" then
 					games[channel] = nil
 					msg(s, channel, "There is no game currently running.")
 				end
 			end
-			--]]
 		end
-
-		return true
 	end
 
 	return true
@@ -213,6 +243,9 @@ function run(settings)
 		-- update game timers
 		for channel, game in pairs(games) do
 			game:process_hook(os.time())
+			if game.state == "finished" then
+				games[channel] = nil
+			end
 		end
 	end
 end
