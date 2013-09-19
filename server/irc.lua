@@ -4,11 +4,11 @@ local socket = require "socket"
 local acro = require "games/acro"
 
 local settings = {
-	server = "irc.xtil.net",
+	server = "irc.badnik.net",
 	port = 6667,
 	nick = "acrobot",
 	fullname = "Acrobot X",
-	channel = "#acrosoda",
+	channel = "#acro",
 	verbose = false -- echos all messages back to IRC and terminal
 }
 
@@ -113,6 +113,12 @@ function process_channel(s, channel, nick, line)
 		next_state(games[channel])
 	end
 
+	if args[1] == "set" and nick == "shakesoda" then
+		if #args == 3 and args[2] == "verbose" then
+			settings.verbose = not settings.verbose
+		end
+	end
+
 	if game then
 		if args[1] == "stop" then
 			msg(s, channel, "/!\\ Game ended /!\\")
@@ -139,12 +145,8 @@ function process_channel(s, channel, nick, line)
 				game:end_game { player = nick }
 			end
 			if args[1] == "set" then
-				if #args == 3 then
-					if args[2] == "verbose" then
-						settings.verbose = not settings.verbose
-					else
-						game:set_option(args[2], args[3])
-					end
+				if #args == 3 and args[2] ~= "verbose" then
+					game:set_option(args[2], args[3])
 				else
 					msg(s, channel, "Wrong number of parameters! (got "..(#args-1).." , need 2)")
 				end
@@ -181,7 +183,8 @@ end
 function handle_receive(s, receive)	
 	-- reply to ping
 	ping_reply(s, receive)
-	if receive:find(":End of /MOTD command.") then
+	if receive:find(":End of /MOTD command.") or 
+	   receive:find(":End of message of the day.") then
 		s:send("JOIN " .. settings.channel .. "\r\n\r\n")
 		joined = true
 	end
@@ -225,10 +228,13 @@ function run(settings)
 	while true do
 		local ready = socket.select({s}, nil, 0.1)
 
+
 		-- process incoming, reply as needed
 		if ready[s] then
 			local receive = s:receive('*l')
 
+			if settings.verbose then print(receive) end
+			
 			if receive == nil then
 				print("Timed out.. attempting to reconnect!")
 				return run(settings)
