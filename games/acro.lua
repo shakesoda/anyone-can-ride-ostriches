@@ -281,8 +281,12 @@ function acro:begin_vote()
 	self:list_acros()
 end
 
-function acro:vote(voter, id)
-	id = tonumber(id)
+function acro:vote(voter, line)
+	local id = tonumber(line) or 0
+	if id < 1 or id > self.acro_count then
+		self.tell(voter, "That is not a valid acro.")
+		return
+	end
 	for player, acro in pairs(self.acros) do
 		if acro.idx == id then
 			if acro.player == voter then
@@ -296,7 +300,6 @@ function acro:vote(voter, id)
 			return
 		end
 	end
-	self.tell(voter, id .. " is not a valid acro.")
 end
 
 return acro
