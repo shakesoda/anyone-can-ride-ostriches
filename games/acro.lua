@@ -146,8 +146,9 @@ function acro:submit_acro(name, text)
 	self.log(name .. " submitted: " .. text)
 	local valid, errors = acro:validate(name, text)
 	if valid then
-			self:add_player(name)
-		self.tell(name, "Your acro \"" .. text .."\" has been registered. You may change it at any time before voting begins.")
+		self:add_player(name)
+		local submit_time = os.difftime(os.time(),self.round_start_time)
+		self.tell(name, string.format("Your acro, \"%s\" is registered (%d seconds). You may change it at any time before voting begins.",text,submit_time))
 
 		if self.acros[name] == nil then
 			self.acro_count = self.acro_count + 1
@@ -212,6 +213,8 @@ function acro:begin_round(manual)
 	self.state = "submitting"
 
 	self.print("The acro for this round is "..self.current_acro..". Voting begins in "..settings.time_limit.." seconds.")
+
+	self.round_start_time = os.time()
 end
 
 function acro:end_round()
