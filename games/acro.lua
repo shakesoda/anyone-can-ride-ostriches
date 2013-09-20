@@ -220,7 +220,6 @@ function acro:end_round()
 	-- apply votes
 	for player, vote in pairs(self.votes) do
 		vote.score = vote.score + 1
-		self.players[player].cockblocked = true
 	end
 
 	local winner = { score = 0, text = "everyone loses", player = nil }
