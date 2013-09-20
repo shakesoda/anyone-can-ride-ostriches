@@ -4,7 +4,7 @@ local socket = require "socket"
 local acro = require "games/acro"
 
 local settings = {
-	server = "irc.badnik.net",
+	server = "irc.xtil.net",
 	port = 6667,
 	nick = "acrobot",
 	fullname = "Acrobot X",
