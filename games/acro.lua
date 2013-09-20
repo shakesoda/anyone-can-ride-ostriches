@@ -279,10 +279,22 @@ function acro:end_round()
 	end
 end
 
-function acro:list_acros()
+function acro:list_acros(fixed_seed)
 	local settings = self.settings[self.settings.mode]
 	local idx = 1
-	for name, acro in pairs(self.acros) do
+	local name_order_initial = {}
+	local name_order_final = {}
+	math.randomseed(fixed_seed or os.time())
+	for name, _ in pairs(self.acros) do table.insert(name_order_initial,name) end
+	for _, name in ipairs(name_order_initial) do
+		local random_val = 0
+		repeat random_val = math.random(1,#name_order_initial)
+		until not name_order_final[random_val]
+		name_order_final[random_val] = name
+	end
+	name_order_initial = nil
+	for _, name in ipairs(name_order_final) do
+		local acro = self.acros[name]
 		local player = self.players[name]
 		acro.idx = idx
 		local outLine = idx .. ": " .. acro.text
