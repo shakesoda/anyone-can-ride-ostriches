@@ -1,0 +1,4 @@
+things to do
+* new game should give a grace period of 60 seconds instead of starting immediately
+* game introduction should show up during grace period
+* game could use a few delays between printing lines (attempt to not trigger flood detection)
