@@ -1,4 +1,55 @@
-things to do
-* new game should give a grace period of 60 seconds instead of starting immediately
+things to do:
+* new game should delay by time_limit instead of starting immediately
 * game introduction should show up during grace period
 * game could use a few delays between printing lines (attempt to not trigger flood detection)
+* some sort of internationalization support?
+ * or maybe just per-game text strings I guess?
+
+strings from the original:
+
+New game starting in $hget(acrosys,delay) seconds!
+How it works is I'm going to give you an acronym, such as: ESC. Then you /msg me a phrase where each word starts with a letter from the acronym, for example: "Eat some cheese" or "Enter secret codes".
+After $hget(acrosys,delay) seconds, I'll show all the acros, and you can vote on your favorite by /msg'ing me the number of the one you're voting for. It can't be yourself though, and don't tell people which is yours.
+This game is running in $exo.ucfirst($v1) mode!
+Ok nevermind, those letters sucked. The new acronym is: $hget(acrosys,acro)
+A new round is starting! Remember to send your acros to me by /msg, and yes, you can change your mind. You have $hget(acrosys,delay) seconds.
+On second thought, you only have 15 seconds for this round. Think fast you losers!
+I've extended this game. You now need 51 points to win. Get moving bitches!
+In honor of good alcohol, all scores have been quintupled and you must now get 151 points!
+This is a special 2-letter round!
+This is a special 1-letter round!
+Start cursing your mothers now, because this is a 10-letter round!
+The new acronym is: $hget(acrosys,acro)
+Only 10 seconds left, so hurry and /msg those acros!
+Your acro was a dupe of %dupe $+ 's. You both lose %dpoints points and have to submit a new acro!
+$nick and %dupe submitted the same acro like a couple of retards. Minus %dpoints points each!
+Your acro, " $+ $1- $+ " is registered ( $+ %x seconds)
+Your acro, " $+ $1- $+ " is reregistered ( $+ %x seconds)
+Sorry, your acro doesn't match. You need to use: $hget(acrosys,acro)
+Voting round:  /msg me the number of the one you're voting for, and don't try voting for yourself. You can change your vote, and you have $hget(acrosys,sdelay) seconds.
+(by the way, this is %nick $+ 's acro)
+You can't vote for yourself.
+Your vote for acro number $1 has been recorded.
+You can't vote for an acro that doesn't exist.
+%x $+ 's acro, " $+ $gettok($hget(acrousers,%x),2-,32) $+ ", recieved %v votes.
+%x $+ 's acro, " $+ $gettok($hget(acrousers,%x),2-,32) $+ ", recieved %v votes, and they also didn't vote.
+%x $+ 's acro, " $+ $gettok($hget(acrousers,%x),2-,32) $+ ", recieved %v votes but %x didn't vote, so they lose %v points!
+%x $+ 's acro, " $+ $gettok($hget(acrousers,%x),2-,32) $+ ", recieved %v votes but %x didn't vote, so they get no points!
+Nobody won the round, so there will be no bonus points given out.
+$gettok(%mv,2,32) gets %newscore acro bonus points for winning the round.
+$gettok(%t,2,32) had the fastest answer, but can't get bonus points because he or she is too close to $hget(acrosys,score) $+ .
+$gettok(%t,2,32) gets %spbonus speed bonus points for having the fastest answer that recieved a vote.
+I decided to piss off %noscore and wouldn't let them get points this round.
+$gettok(%win,2,32) wins a $exo.ucfirst($hget(acrosys,gametype)) game for the $ord(%nwins) time!
+$gettok(%win,2,32) wins for the $ord(%nwins) time!
+$gettok(%win,2,32) $+ , for your great acroing, you win $read($scriptdir $+ acroprizes.txt)
+COCKBLOCKED!
+Being cockblocked sucks. So does losing all of your points. %whocock would know about that.
+Lets be unfair and give %whobonus 5 points.
+Since $gettok(%lose,2,32) sucks ass, they get 10 bonus points.
+%whobonus is lame. Minus 5 points!
+$gettok(%win,2,32) is not allowed to win. Minus 10 points!
+Stay in the lead now, bitch!
+For the sake of mixing things up a little, I've swapped the scores of %s1 and %s2 $+ .
+The next round will start in 30 seconds.
+By the way, all of your scores have now been reset to zero. Enjoy!
