@@ -68,8 +68,9 @@ Part 2: Behavior and Rules
 [Tslam]			else if rand(1,10) == 3, then next acro is 1 letter
 [AJslam]		else if rand(1,20) == 12, then next acro is 1 letter
 
-* Rule B3
-After some amount of time (15 seconds), the initial acro is discarded and a new acro is generated.
+* Rule B3 (Turkeyslam mode)
+After the first 15 seconds, if rand(1,35) == 5, the initial acro is discarded
+and a new acro is generated.
 
 * Beginning of Round
 Default Rulesets:
@@ -80,13 +81,26 @@ Default Rulesets:
 AJslam Ruleset:
 if rand(1,20) == 5 && acro length < 5, you only have 15 seconds to submit acro.
 if rand(1,20) == 5 && acro length > 5, you have 45 seconds to submit acro.
-if rand(1,75) == 18 && max score < 51, then game is extended to 51 points
-if rand(1,100) == 64 && max score < 151, then game is extended to 151 points. different quote on activation.
+
+// after a recent (2016/06/xx) playthrough, I've decided to remove all extended
+// score modes, since all they do is prolong the game. -freem
+//if rand(1,75) == 18 && max score < 51, then game is extended to 51 points
+//if rand(1,100) == 64 && max score < 151, then game is extended to 151 points. different quote on activation.
+
+* Duping
+According to the source, dupe checking apparently only happens in Turkeyslam and
+AJslam modes.
+
+Bug: Score correction in 151 mode (-50 instead of -10) only happens during a
+dupe check on a freshly submitted acro. Re-submitting an acro that's a dupe
+manages to only take 10 points in every mode.
 
 * Voting
 [Tslam]			if player's score >= (maxscore *0.903226) && rand(1,3) == 2, then display "by the way, this is $NICK's acro" after the acro in question.
 
 * Post-Round
+[All]			Bonus points are awarded to the winner, most times. (bonus points = acro length (normal), or acro length * 5 (151 mode))
+
 [All]			If a player has (maxPoints-1), the bot will yell "COCKBLOCKED!" as a taunt.
 				This has no effect on scoring (unless in Turkeyslam mode; see below).
 
