@@ -1,3 +1,5 @@
+-- games/settings.lua - Settings and game rules
+
 local settings = {
 	game = "acro",
 	mode = "normal",

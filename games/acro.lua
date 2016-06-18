@@ -1,3 +1,6 @@
+-- games/acro.lua - "Acrobot" (a.k.a. Acrophobia) Mode
+-- (Originally based off of rules developed in eXonyte's mIRC version)
+
 require "common/utils"
 
 acro = {}
